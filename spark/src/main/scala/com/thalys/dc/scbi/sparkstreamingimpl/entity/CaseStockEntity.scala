@@ -1,7 +1,5 @@
 package com.thalys.dc.scbi.sparkstreamingimpl.entity
 
-import java.sql.Timestamp
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 /**
@@ -11,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
   * date: 2020 - 11 - 09 15:24
   */
 @JsonIgnoreProperties(ignoreUnknown = true)
-case class StockEntity (
+case class CaseStockEntity (
 accountingMl: String,
 manufacturerName: String,
 customerEnableCode: String,

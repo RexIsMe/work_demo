@@ -1,13 +1,12 @@
 package com.thalys.dc.scbi.sparkstreamingimpl.entity
 
-
 /**
   * descriptions:
   *
   * author: li zhiqiang
   * date: 2020 - 11 - 11 16:25
   */
-case class StockWildEntity(
+case class CaseStockWideEntity(
   ip: String,
   timestamp: Long,
   companyName: String,

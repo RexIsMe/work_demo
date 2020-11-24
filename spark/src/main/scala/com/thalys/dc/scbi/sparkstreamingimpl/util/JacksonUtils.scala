@@ -1,6 +1,7 @@
 package com.thalys.dc.scbi.sparkstreamingimpl.util
 
 import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 /**
   * descriptions:
@@ -12,7 +13,8 @@ object JacksonUtils {
 
     //配置ObjectMapper对象
     var objectMapper: ObjectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true)
+      .registerModule(DefaultScalaModule)
 
     /**
       * 使用泛型方法，把json字符串转换为相应的JavaBean对象。
