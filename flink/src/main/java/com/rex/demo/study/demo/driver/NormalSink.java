@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo;
+package com.rex.demo.study.demo.driver;
 
 import com.alibaba.fastjson.JSONObject;
 import com.rex.demo.study.demo.constants.KafkaConstants;
@@ -11,11 +11,13 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -46,7 +48,8 @@ public class NormalSink {
         messageStream
                 .rebalance()
                 .map(new DCRecordEntityMapFunction())
-                .addSink(new DCRecordEntitySink());
+//                .addSink(new DCRecordEntitySink());
+                .writeUsingOutputFormat(new MysqlSink1());
 //                .print();
         env.execute("kafka-flink-Xsink");
     }
@@ -122,5 +125,38 @@ public class NormalSink {
             conn.commit();
         }
     }
+
+    /**
+     * 通过实现OutputFormat接口方式得到sink
+     */
+    static class MysqlSink1 implements OutputFormat<DCRecordEntity>{
+        Connection conn;
+        PreparedStatement ps;
+        String jdbcUrl = "jdbc:mysql://172.26.55.109:3306/dc?autoReconnect=true&autoReconnectForPools=true&useUnicode=true&characterEncoding=utf8&useSSL=false&useAffectedRows=true&allowMultiQueries=true";
+        String username = "root";
+        String password = "t4*9&/y?c,h.e17!";
+        String driverName = "com.mysql.jdbc.Driver";
+
+        @Override
+        public void configure(Configuration parameters) {
+            // not need
+        }
+
+        @Override
+        public void open(int taskNumber, int numTasks) throws IOException {
+            /* 同DCRecordEntitySink */
+        }
+
+        @Override
+        public void writeRecord(DCRecordEntity record) throws IOException {
+            /* 同DCRecordEntitySink */
+        }
+
+        @Override
+        public void close() throws IOException {
+            /* 同DCRecordEntitySink */
+        }
+    }
+
 
 }
