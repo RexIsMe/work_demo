@@ -3,6 +3,7 @@ package com.rex.demo.study.demo.sink;
 import com.alibaba.fastjson.JSON;
 import com.rex.demo.study.demo.entity.Student;
 import com.rex.demo.study.demo.util.DruidConnectionPool;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.api.common.typeutils.base.VoidSerializer;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -19,6 +20,7 @@ import java.sql.SQLException;
  * @Author li zhiqang
  * @create 2020/11/26
  */
+@Slf4j
 public class MySqlTwoPhaseCommitSinkDemo extends TwoPhaseCommitSinkFunction<Tuple2<String, Integer>,
         MySqlTwoPhaseCommitSinkDemo.ConnectionState, Void> {
 
@@ -78,10 +80,13 @@ public class MySqlTwoPhaseCommitSinkDemo extends TwoPhaseCommitSinkFunction<Tupl
         System.out.println("=====> commit... ");
         Connection connection = transaction.connection;
         try {
-            connection.commit();
-            connection.close();
+            if(connection != null){
+                connection.commit();
+                connection.close();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("提交事物异常");
+//            log.error("提交事物异常", e);
         }
     }
 
@@ -91,10 +96,13 @@ public class MySqlTwoPhaseCommitSinkDemo extends TwoPhaseCommitSinkFunction<Tupl
         System.out.println("=====> abort... ");
         Connection connection = transaction.connection;
         try {
-            connection.rollback();
-            connection.close();
+            if(connection != null){
+                connection.rollback();
+                connection.close();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("回滚事物异常");
+//            log.error("回滚事物异常", e);
         }
     }
 
