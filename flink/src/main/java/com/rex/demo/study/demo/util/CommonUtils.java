@@ -56,13 +56,14 @@ public class CommonUtils {
     public static StreamExecutionEnvironment getEnv(){
         /**1.创建流运行环境**/
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        //设置全局并行度，默认为CPU核数
+        env.setParallelism(1);
         /**请注意此处：**/
         //1.只有开启了CheckPointing,才会有重启策略
-        env.enableCheckpointing(5000);
+        env.enableCheckpointing(20000);
         //2.默认的重启策略是：固定延迟无限重启
-        //此处设置重启策略为：出现异常重启3次，隔5秒一次
-        env.getConfig().setRestartStrategy(RestartStrategies.fixedDelayRestart(2, Time.seconds(2)));
+        //此处设置重启策略为：出现异常总共重启3次，隔5秒一次；重启过3次则任务停止
+        env.getConfig().setRestartStrategy(RestartStrategies.fixedDelayRestart(3, Time.seconds(5)));
         //系统异常退出或人为 Cancel 掉，不删除checkpoint数据
         env.getCheckpointConfig().enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         //设置Checkpoint模式（与Kafka整合，一定要设置Checkpoint模式为Exactly_Once）

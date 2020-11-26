@@ -110,7 +110,7 @@ public class FlinkUtils {
 
         private RestartStrategies.RestartStrategyConfiguration restartStrategyConfiguration;
 
-        private FlinkUtils.FlinkCheckpointConfig flinkCheckpointConfig;
+        private FlinkCheckpointConfig flinkCheckpointConfig;
 
     }
 
@@ -119,7 +119,7 @@ public class FlinkUtils {
      * @param flinkStartConfig
      * @return
      */
-    public static FlinkInitInfo getFlinkKafkaInitInfo(FlinkUtils.FlinkStartConfig flinkStartConfig) {
+    public static FlinkInitInfo getFlinkKafkaInitInfo(FlinkStartConfig flinkStartConfig) {
         StreamExecutionEnvironment env = getEnv(flinkStartConfig);
         FlinkKafkaConsumer<String> kafkaSource = StringUtils.isNotBlank(flinkStartConfig.getMessageTopic())
                 ? new FlinkKafkaConsumer(flinkStartConfig.getMessageTopic(), new SimpleStringSchema(),
@@ -131,16 +131,16 @@ public class FlinkUtils {
         return FlinkInitInfo.builder().env(env).messageStream(messageStream).build();
     }
 
-    public static StreamExecutionEnvironment getEnv(FlinkUtils.FlinkStartConfig flinkStartConfig) {
+    public static StreamExecutionEnvironment getEnv(FlinkStartConfig flinkStartConfig) {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         /* 检查点设置、重启设置 */
         RestartStrategies.RestartStrategyConfiguration restartStrategyConfiguration = flinkStartConfig.getRestartStrategyConfiguration();
-        env.setRestartStrategy(Optional.ofNullable(restartStrategyConfiguration).orElse(RestartStrategies.fixedDelayRestart(30, Time.of(5L, TimeUnit.MINUTES))));
+        env.setRestartStrategy(Optional.ofNullable(restartStrategyConfiguration).orElse(RestartStrategies.fixedDelayRestart(30, Time.of(5L, TimeUnit.SECONDS))));
         addCheckpointConfig(env, flinkStartConfig.getFlinkCheckpointConfig());
         return env;
     }
 
-    public static void addCheckpointConfig(StreamExecutionEnvironment env,FlinkUtils.FlinkCheckpointConfig flinkCheckpointConfig) {
+    public static void addCheckpointConfig(StreamExecutionEnvironment env, FlinkCheckpointConfig flinkCheckpointConfig) {
         if (flinkCheckpointConfig == null) {
             return;
         }

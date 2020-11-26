@@ -14,6 +14,7 @@ public class KafkaConstants {
 
     /* 测试环境kafka topic name */
     public static final String TEST_TOPIC = "test";
+    public static final String STUDENT_TOPIC = "student";
     /* 测试环境kafka consumer group name */
     public static final String TEST_CONSUMER_GROUP = "test-consumer-group";
 
