@@ -16,6 +16,7 @@ import java.sql.SQLException;
 
 /**
  * mysql 两阶段提交sink，保证exactly once
+ * 通过ConnectionState将connection对象包装起来就没有报错（相较于{@link MySqlTwoPhaseCommitSink}.）
  *
  * @Author li zhiqang
  * @create 2020/11/26
@@ -30,14 +31,14 @@ public class MySqlTwoPhaseCommitSinkDemo extends TwoPhaseCommitSinkFunction<Tupl
                 VoidSerializer.INSTANCE);
     }
 
-
     @Override
     protected ConnectionState beginTransaction() throws Exception {
         System.out.println("=====> beginTransaction... ");
         //使用连接池，不使用单个连接
-        //Class.forName("com.mysql.jdbc.Driver");
-        //Connection conn = DriverManager.getConnection("jdbc:mysql://172.16.200
-        // .101:3306/bigdata?characterEncoding=UTF-8", "root", "123456");
+//        Class.forName("com.mysql.jdbc.Driver");
+//        String url = "jdbc:mysql://172.26.55.109:3306/dc?characterEncoding=utf8&useSSL=false";
+//        Connection connection = DBConnectUtil.getConnection(url, "root", "t4*9&/y?c,h.e17!");
+        // 使用druid连接池
         Connection connection = DruidConnectionPool.getConnection();
         connection.setAutoCommit(false);//设定不自动提交
         return new ConnectionState(connection);

@@ -20,9 +20,10 @@ import java.util.Properties;
  */
 public class CommonUtils {
 
+    /**
+     * 此部分读取Socket数据，只是用来人为出现异常，触发重启策略。验证重启后是否会再次去读之前已读过的数据(Exactly-Once)
+     */
     public static void diyThrowException(StreamExecutionEnvironment env){
-        /**此部分读取Socket数据，只是用来人为出现异常，触发重启策略。验证重启后是否会再次去读之前已读过的数据(Exactly-Once)*/
-        /*************** start **************/
         DataStreamSource<String> socketTextStream = env.socketTextStream("172.26.55.109", 8888);
 
         SingleOutputStreamOperator<String> streamOperator1 = socketTextStream.map(new MapFunction<String, String>() {
@@ -34,7 +35,6 @@ public class CommonUtils {
                 return word;
             }
         });
-        /************* end **************/
     }
 
     public static Properties getKafkaProperties(){

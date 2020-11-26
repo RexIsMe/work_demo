@@ -36,8 +36,9 @@ public class RestartStrategyDemo3 {
         /**1.创建流运行环境**/
         StreamExecutionEnvironment env = CommonUtils.getEnv();
         // 设置将来访问 hdfs 的使用的用户名, 否则会出现权限不够
-//        System.setProperty("HADOOP_USER_NAME", "hadoop");
-//        env.setStateBackend(new FsStateBackend("hdfs://hadoop-master:9000/test/flink/checkpoint/"));
+        System.setProperty("HADOOP_USER_NAME", "hadoop");
+        // 指定状态后端 和 checkpoint的保存地址
+        env.setStateBackend(new FsStateBackend("hdfs://hadoop-master:9000/test/flink/checkpoint/"));
 
         /**2.Source:读取 Kafka 中的消息**/
         Properties properties = CommonUtils.getKafkaProperties();
@@ -55,14 +56,14 @@ public class RestartStrategyDemo3 {
         /**3.Transformation过程**/
         SingleOutputStreamOperator<Tuple2<String, Integer>> streamOperator = kafkaDataStream.map(str -> Tuple2.of(str, 1)).returns(Types.TUPLE(Types.STRING, Types.INT));
 
-        CommonUtils.diyThrowException(env);
-
         //对元组 Tuple2 分组求和
         SingleOutputStreamOperator<Tuple2<String, Integer>> sum = streamOperator.keyBy(0).sum(1);
 
         /**4.Sink过程**/
         sum.printToErr();
         sum.addSink(new MySqlTwoPhaseCommitSinkDemo());
+
+        CommonUtils.diyThrowException(env);
 
         /**5.任务执行**/
         env.execute("RestartStrategyDemo");
