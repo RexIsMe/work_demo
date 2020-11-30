@@ -1,5 +1,6 @@
 package com.rex.demo.study.demo.util;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.time.Time;
@@ -10,6 +11,7 @@ import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -70,6 +72,15 @@ public class CommonUtils {
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
         return env;
+    }
+
+    /**
+     * 获取项目resources的路径
+     * @param fileName
+     * @return
+     */
+    public static String getResourcePath(String fileName){
+        return PropertiesConfiguration.PropertiesReader.class.getClassLoader().getResource(fileName).getPath();
     }
 
 }
