@@ -18,6 +18,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 
 import java.io.Serializable;
 import java.util.List;
@@ -121,11 +122,11 @@ public class FlinkUtils {
      */
     public static FlinkInitInfo getFlinkKafkaInitInfo(FlinkStartConfig flinkStartConfig) {
         StreamExecutionEnvironment env = getEnv(flinkStartConfig);
-        FlinkKafkaConsumer<String> kafkaSource = StringUtils.isNotBlank(flinkStartConfig.getMessageTopic())
-                ? new FlinkKafkaConsumer(flinkStartConfig.getMessageTopic(), new SimpleStringSchema(),
+        FlinkKafkaConsumer011<String> kafkaSource = StringUtils.isNotBlank(flinkStartConfig.getMessageTopic())
+                ? new FlinkKafkaConsumer011(flinkStartConfig.getMessageTopic(), new SimpleStringSchema(),
                 KafkaUtils.getKafkaConsumerProperties(flinkStartConfig.getKafKaConfig(),
                         flinkStartConfig.getMessageGroup()))
-                : new FlinkKafkaConsumer(flinkStartConfig.getMessageTopicList(), new SimpleStringSchema(), KafkaUtils
+                : new FlinkKafkaConsumer011(flinkStartConfig.getMessageTopicList(), new SimpleStringSchema(), KafkaUtils
                 .getKafkaConsumerProperties(flinkStartConfig.getKafKaConfig(), flinkStartConfig.getMessageGroup()));
         DataStream<String> messageStream = env.addSource(kafkaSource);
         return FlinkInitInfo.builder().env(env).messageStream(messageStream).build();
