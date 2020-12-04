@@ -1,6 +1,7 @@
 package com.rex.demo.study.demo.driver;
 
 import com.rex.demo.study.demo.util.CommonUtils;
+import com.rex.demo.study.demo.util.DateUtils;
 import com.rex.demo.study.demo.util.FlinkUtils;
 import lombok.Data;
 import lombok.val;
@@ -26,6 +27,8 @@ import org.apache.flink.util.Collector;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,44 +49,48 @@ public class HotItemDriver {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.setParallelism(1);
 
+        // 如果数据量比较大的时候，我们每条数据都生成一个水印的话，会影响性能，所以这里还有一个周期性生成水印的方法。这个水印的生成周期可以这样设置：
+        env.getConfig().setAutoWatermarkInterval(5000L);
+
         env.readTextFile(CommonUtils.getResourcePath("UserBehavior.csv"))
         .map(line -> {
             String[] split = line.split(",");
             return new UserBehavior(Long.valueOf(split[0]), Long.valueOf(split[1]), Integer.valueOf(split[2]), split[3], Long.valueOf(split[4]));
         })
-        //指定eventTime字段、设置waterMark延时
+        /**
+         * 指定eventTime字段、设置waterMark延时
+         */
 //        .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<UserBehavior>(Time.milliseconds(1)) {
 //            @Override
 //            public long extractTimestamp(UserBehavior element) {
 //                return element.getTimestamp() * 1000;
 //            }
 //        })
-//        .assignTimestampsAndWatermarks(new WatermarkStrategy<UserBehavior>() {
-//            @Override
-//            public WatermarkGenerator<UserBehavior> createWatermarkGenerator(WatermarkGeneratorSupplier.Context context) {
-//                return context.getMetricGroup().getAllVariables().;
-//            }
-//        })
-//        .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<UserBehavior>() {
-//
-//            @Override
-//            public long extractAscendingTimestamp(UserBehavior element) {
-//                return element.getTimestamp() * 1000 ;
-//            }
-//        })
-        .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
-//        .assignTimestampsAndWatermarks(WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMillis(10)))
+//         .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
+        /**
+         * flink 1.11 timestampAsigner 和waterMark使用方式
+         */
+        .assignTimestampsAndWatermarks(WatermarkStrategy.<UserBehavior>forBoundedOutOfOrderness(Duration.ofMillis(10)).withTimestampAssigner(new SerializableTimestampAssigner<UserBehavior>(){
+            @Override
+            public long extractTimestamp(UserBehavior element, long recordTimestamp) {
+                return element.getTimestamp() * 1000;
+            }
+        }))
         .filter(ub -> ub.getBehavior().equals("pv"))
-        //
-        .keyBy(UserBehavior::getItemId)
-        //匿名类写法
+        /**
+         * lambda语法，:: 直接通过类型调用类的静态、非静态方法
+         */
+//        .keyBy(UserBehavior::getItemId)
+        /**
+         * 匿名类写法
+         */
         .keyBy(new KeySelector<UserBehavior, Long>() {
             @Override
             public Long getKey(UserBehavior value) throws Exception {
                 return value.getItemId();
             }
         })
-        //lambda写法
+        //上面的lambda写法
 //        .keyBy(ub -> ub.getItemId())
         .timeWindow(Time.minutes(60),Time.minutes(5))
         .aggregate(new CountAgg(), new WindowResultFunction())
