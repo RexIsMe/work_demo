@@ -8,6 +8,7 @@ import org.apache.flink.api.common.eventtime.*;
 import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -16,6 +17,7 @@ import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
+import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -62,20 +64,30 @@ public class HotItemDriver {
 //                return context.getMetricGroup().getAllVariables().;
 //            }
 //        })
-        .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<UserBehavior>() {
-
-            @Override
-            public long extractAscendingTimestamp(UserBehavior element) {
-                return element.getTimestamp() * 1000 ;
-            }
-        })
-//        .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
+//        .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<UserBehavior>() {
+//
+//            @Override
+//            public long extractAscendingTimestamp(UserBehavior element) {
+//                return element.getTimestamp() * 1000 ;
+//            }
+//        })
+        .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessGenerator())
 //        .assignTimestampsAndWatermarks(WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMillis(10)))
         .filter(ub -> ub.getBehavior().equals("pv"))
-        .keyBy(ub -> ub.getItemId())
+        //
+        .keyBy(UserBehavior::getItemId)
+        //匿名类写法
+        .keyBy(new KeySelector<UserBehavior, Long>() {
+            @Override
+            public Long getKey(UserBehavior value) throws Exception {
+                return value.getItemId();
+            }
+        })
+        //lambda写法
+//        .keyBy(ub -> ub.getItemId())
         .timeWindow(Time.minutes(60),Time.minutes(5))
         .aggregate(new CountAgg(), new WindowResultFunction())
-        .keyBy(ele -> ele.getCount())
+        .keyBy(ele -> ele.getWindowEnd())
         .process(new TopNHotItem())
         .printToErr();
 
@@ -87,13 +99,13 @@ public class HotItemDriver {
 
 class BoundedOutOfOrdernessGenerator implements AssignerWithPeriodicWatermarks<UserBehavior> {
 
-    private final long maxOutOfOrderness = 0L; // 3.5 seconds
+    private final long maxOutOfOrderness = 3500L; // 3.5 seconds
 
     private long currentMaxTimestamp;
 
     @Override
     public long extractTimestamp(UserBehavior element, long previousElementTimestamp) {
-        long timestamp = element.getTimestamp();
+        long timestamp = element.getTimestamp() * 1000;
         currentMaxTimestamp = Math.max(timestamp, currentMaxTimestamp);
         return timestamp;
     }
@@ -105,12 +117,50 @@ class BoundedOutOfOrdernessGenerator implements AssignerWithPeriodicWatermarks<U
     }
 }
 
-
+/**
+ * 键控流函数实现类
+ */
 class TopNHotItem extends KeyedProcessFunction<Long, ItemViewCount, String> {
 
 //    private ListState<ItemViewCount> itemState = new ListStateDescriptor<ItemViewCount>();
     private ListState<ItemViewCount> itemState;
 
+    /**
+     * 创建一个ListState 用来存储数据
+     * @param parameters
+     * @throws Exception
+     */
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        super.open(parameters);
+        // 命名状态变量的名字和状态变量的类型
+        ListStateDescriptor<ItemViewCount> itemViewCountListStateDescriptor = new ListStateDescriptor<>("itemState-state", ItemViewCount.class);
+        // 从运行时上下文中获取状态并赋值
+        itemState = getRuntimeContext().getListState(itemViewCountListStateDescriptor);
+    }
+
+    /**
+     * 将每个元素都添加到ListState中
+     * 注册一个定时器，出发时间设定为windowEnd + 1
+     *
+     * @param value
+     * @param ctx
+     * @param out
+     * @throws Exception
+     */
+    @Override
+    public void processElement(ItemViewCount value, Context ctx, Collector<String> out) throws Exception {
+        itemState.add(value);
+        ctx.timerService().registerEventTimeTimer(value.getWindowEnd() + 1);
+    }
+
+    /**
+     * 定时器触发时，相当于收到了大于等于windowEnd + 1 的waterMark,可以认为这时窗口已经收到了该窗口的所有数据，从ListState中读取数据
+     * @param timestamp
+     * @param ctx
+     * @param out
+     * @throws Exception
+     */
     @Override
     public void onTimer(long timestamp, OnTimerContext ctx, Collector<String> out) throws Exception {
         List<ItemViewCount> allItems = new ArrayList<>();
@@ -136,27 +186,15 @@ class TopNHotItem extends KeyedProcessFunction<Long, ItemViewCount, String> {
         result.append("====================================\n\n");
         // 控制输出频率，模拟实时滚动结果
         Thread.sleep(1000);
+
         out.collect(result.toString());
     }
 
-    @Override
-    public void processElement(ItemViewCount value, Context ctx, Collector<String> out) throws Exception {
-        itemState.add(value);
-        ctx.timerService().registerEventTimeTimer(value.getWindowEnd() + 1);
-    }
-
-    @Override
-    public void open(Configuration parameters) throws Exception {
-        super.open(parameters);
-        // 命名状态变量的名字和状态变量的类型
-        ListStateDescriptor<ItemViewCount> itemViewCountListStateDescriptor = new ListStateDescriptor<>("itemState-state", ItemViewCount.class);
-        // 从运行时上下文中获取状态并赋值
-        itemState = getRuntimeContext().getListState(itemViewCountListStateDescriptor);
-    }
 }
 
 
 /**
+ * 每个窗口内的每个键控流分别调用
  * 聚合逻辑
  * 计算浏览量
  */
@@ -165,7 +203,7 @@ class CountAgg implements AggregateFunction<UserBehavior, Long, Long> {
     @Override
     public Long createAccumulator() {
         return 0L;
-    }
+}
 
     @Override
     public Long add(UserBehavior value, Long accumulator) {
@@ -183,6 +221,9 @@ class CountAgg implements AggregateFunction<UserBehavior, Long, Long> {
     }
 }
 
+/**
+ *
+ */
 class WindowResultFunction implements WindowFunction<Long , ItemViewCount , Long, TimeWindow> {
     @Override
     public void apply(Long aLong, TimeWindow window, Iterable<Long> input, Collector<ItemViewCount> out) {
@@ -222,6 +263,6 @@ class ItemViewCount implements Comparable<ItemViewCount> {
 
     @Override
     public int compareTo(ItemViewCount o) {
-        return this.getCount().compareTo(o.getCount());
+        return o.getCount().compareTo(this.getCount());
     }
 }
