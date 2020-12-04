@@ -150,25 +150,23 @@ public class FlinkUtils {
 //            env.setStateBackend(stateBackend);
 //        }
         env.setStateBackend(Optional.ofNullable(flinkCheckpointConfig.getStateBackend()).orElse(new FsStateBackend("hdfs://hadoop-master:9000/test/flink/checkpoint")));
-        //默认每10分钟执行一次
+        //默认每1分钟执行一次
         env.enableCheckpointing(Optional.ofNullable(flinkCheckpointConfig.getEnableCheckpointing())
                 .orElse(1 * DateUtils.getMillis(DateEnum.MINUTE)));
         //默认语义EXACTLY_ONCE
         env.getCheckpointConfig().setCheckpointingMode(Optional.ofNullable(flinkCheckpointConfig.getCheckpointingMode())
                 .orElse(CheckpointingMode.EXACTLY_ONCE));
-        //默认CheckPoint保存10分钟超时
+        //默认CheckPoint保存1分钟超时
         env.getCheckpointConfig().setCheckpointTimeout(Optional.ofNullable(flinkCheckpointConfig.getCheckpointTimeout())
                 .orElse(1 * DateUtils.getMillis(DateEnum.MINUTE)));
-        //默认同一时间，只允许有1个Checkpoint在发生
-        env.getCheckpointConfig().setMaxConcurrentCheckpoints(
-                Optional.ofNullable(flinkCheckpointConfig.getMaxConcurrentCheckpoints()).orElse(1));
-        //默认两次Checkpoint之间的最小时间间隔为10分钟
+        //默认两次Checkpoint之间的最小时间间隔为1分钟
         env.getCheckpointConfig().setMinPauseBetweenCheckpoints(
                 Optional.ofNullable(flinkCheckpointConfig.getMinPauseBetweenCheckpoints())
                         .orElse(1 * DateUtils.getMillis(DateEnum.MINUTE)));
+        //默认同一时间，只允许有1个Checkpoint在发生
+        env.getCheckpointConfig().setMaxConcurrentCheckpoints(
+                Optional.ofNullable(flinkCheckpointConfig.getMaxConcurrentCheckpoints()).orElse(1));
         //系统异常退出或人为 Cancel 掉，不删除checkpoint数据
         env.getCheckpointConfig().enableExternalizedCheckpoints(Optional.ofNullable(flinkCheckpointConfig.getEnableExternalizedCheckpoints()).orElse(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION));
-        //设置Checkpoint模式（与Kafka整合，一定要设置Checkpoint模式为Exactly_Once）
-        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
     }
 }

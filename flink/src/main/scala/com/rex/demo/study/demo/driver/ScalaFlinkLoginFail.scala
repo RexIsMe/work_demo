@@ -4,8 +4,6 @@ package com.rex.demo.study.demo.driver
 import org.apache.flink.cep.scala.{CEP, PatternStream}
 import org.apache.flink.cep.scala.pattern.Pattern
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
 
@@ -23,7 +21,7 @@ object ScalaFlinkLoginFail {
   def main(args: Array[String]): Unit = {
 
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.IngestionTime)
     env.setParallelism(1)
 
     val loginEventStream = env.fromCollection(List(
