@@ -11,6 +11,9 @@
     <modules>
         <module>spark</module>
         <module>flink</module>
+        <module>flume</module>
+        <module>flume-parent</module>
+        <module>flume-parent</module>
     </modules>
 
 
