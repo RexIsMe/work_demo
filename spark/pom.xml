@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>spark</artifactId>
 
+
+    <properties>
+        <spark.version>2.2.1</spark.version>
+        <scala.version>2.11</scala.version>
+    </properties>
+
+
     <dependencies>
 
         <!--日志 start-->
@@ -51,6 +58,13 @@
             <!--<version>${spark.version}</version>-->
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-repl -->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-repl_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>cn.ipokerface</groupId>
@@ -88,6 +102,19 @@
             <version>2.11.0</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-hive_${scala.version}</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.72</version>
+        </dependency>
 
 
         <dependency>

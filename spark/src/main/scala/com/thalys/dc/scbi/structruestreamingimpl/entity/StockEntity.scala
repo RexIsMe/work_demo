@@ -19,7 +19,7 @@ ownerId: Integer,
 warehouseCategoryCode: String,
 organizationId: Long,
 sterilizationBatchNo: String,
-inventoryNumber: Integer,
+var inventoryNumber: Integer,
 effectiveDays: Integer,
 packageUnitName: String,
 warehouseAreaDesc: String,
@@ -76,4 +76,12 @@ classifyIdLevel2: String,
 registerName: String,
 effectiveDate: Long,
 commodityName: String
-)
+){
+  override def equals(obj: Any): Boolean = {
+    var result:Boolean = false
+    if(this.customerEnableCode.equals(obj.asInstanceOf[StockEntity].customerEnableCode)){
+      result = true
+    }
+    result
+  }
+}
