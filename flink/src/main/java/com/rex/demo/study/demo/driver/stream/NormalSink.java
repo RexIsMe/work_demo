@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 import com.alibaba.fastjson.JSONObject;
 import com.rex.demo.study.demo.constants.KafkaConstants;

@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver.window;
+package com.rex.demo.study.demo.driver.stream.window;
 
 import org.apache.flink.streaming.api.datastream.AllWindowedStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;

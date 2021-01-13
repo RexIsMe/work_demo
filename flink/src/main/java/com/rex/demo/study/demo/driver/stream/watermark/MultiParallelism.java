@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver.watermark;
+package com.rex.demo.study.demo.driver.stream.watermark;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;

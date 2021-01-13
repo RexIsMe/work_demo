@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 import com.rex.demo.study.demo.util.FlinkUtils2;
 import org.apache.flink.api.common.functions.RichMapFunction;

@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 import com.rex.demo.study.demo.util.CommonUtils;
 import org.apache.flink.api.common.functions.FlatMapFunction;

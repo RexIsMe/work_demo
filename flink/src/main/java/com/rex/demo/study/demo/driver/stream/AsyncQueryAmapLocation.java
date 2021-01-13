@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 import com.rex.demo.study.demo.asyncrequest.AsyncDatabaseRequest;
 import com.rex.demo.study.demo.entity.DataLocation;

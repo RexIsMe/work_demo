@@ -1,10 +1,8 @@
-package com.rex.demo.study.demo.driver.join;
+package com.rex.demo.study.demo.driver.stream.join;
 
 import com.rex.demo.study.demo.util.CommonUtils;
 import com.rex.demo.study.demo.util.FlinkUtils2;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.flink.api.common.eventtime.*;
-import org.apache.flink.api.common.functions.JoinFunction;
+import org.apache.flink.api.common.functions.CoGroupFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple5;
@@ -16,14 +14,15 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.util.Collector;
 
 /**
- * TODO InnerJoin 实例
+ * TODO coGroup()方法，实现 Left Join 功能
  *
  * @author liuzebiao
  * @Date 2020-2-21 16:11
  */
-public class InnerJoinDemo {
+public class RightJoinDemo {
 
     public static void main(String[] args) throws Exception {
 
@@ -56,9 +55,9 @@ public class InnerJoinDemo {
             }
         });
 
-        //实现 Join 操作(where、equalTo、apply 中实现部分，都可以写成单独一个类)
-        DataStream<Tuple5<String, String, String, String, String>> joinDataStream = leftStream
-                .join(rightStream)
+        // coGroup() 方法实现 right join 操作
+        DataStream<Tuple5<String, String, String, String, String>> joinDataStream = rightStream
+                .coGroup(leftStream)
                 .where(new KeySelector<String, String>() {
                     @Override
                     public String getKey(String value) throws Exception {
@@ -74,18 +73,31 @@ public class InnerJoinDemo {
                     }
                 })
                 .window(TumblingEventTimeWindows.of(Time.seconds(10)))
-                .apply(new JoinFunction<String, String, Tuple5<String, String, String, String, String>>() {
+                .apply(new CoGroupFunction<String, String, Tuple5<String, String, String, String, String>>() {
+                    //重写 coGroup() 方法，来实现 left join 功能。
                     @Override
-                    public Tuple5<String, String, String, String, String> join(String leftStr, String rightStr) throws Exception {
-                        String[] left = leftStr.split(",");
-                        String[] right = rightStr.split(",");
-                        return new Tuple5<>(left[0], left[1], right[1], left[2],right[2]);
+                    public void coGroup(Iterable<String> rightElement, Iterable<String> leftElement, Collector<Tuple5<String, String, String, String, String>> out) throws Exception {
+                        boolean hasElement = false;
+                        //leftElement为左流中的数据
+                        for (String rightStr : rightElement) {
+                            String[] right = rightStr.split(",");
+                            //如果 左边的流 join 上右边的流,rightStream 就不能为空
+                            for (String leftStr : leftElement) {
+                                String[] left = leftStr.split(",");
+                                //将 join 的数据输出
+                                out.collect(Tuple5.of(right[0], right[1], left[1], right[2], left[2]));
+                                hasElement = true;
+                            }
+                            if (!hasElement) {
+                                out.collect(Tuple5.of(right[0], right[1], "null", right[2], "null"));
+                            }
+                        }
                     }
                 });
 
         joinDataStream.print();
 
-        env.execute("InnerJoinDemo");
+        env.execute("LeftJoinDemo");
     }
 }
 

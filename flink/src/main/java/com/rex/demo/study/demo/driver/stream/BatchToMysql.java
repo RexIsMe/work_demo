@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 import com.rex.demo.study.demo.sink.SinkToMySQL;
 import com.rex.demo.study.demo.util.CommonUtils;

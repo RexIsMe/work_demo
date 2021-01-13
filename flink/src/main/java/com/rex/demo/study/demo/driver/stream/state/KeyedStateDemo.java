@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver.state;
+package com.rex.demo.study.demo.driver.stream.state;
 
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;

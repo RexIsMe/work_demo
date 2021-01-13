@@ -1,4 +1,4 @@
-package com.rex.demo.study.demo.driver.join;
+package com.rex.demo.study.demo.driver.stream.join;
 
 import com.rex.demo.study.demo.util.CommonUtils;
 import com.rex.demo.study.demo.util.FlinkUtils2;

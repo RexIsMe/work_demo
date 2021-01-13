@@ -1,23 +1,15 @@
-package com.rex.demo.study.demo.driver;
+package com.rex.demo.study.demo.driver.stream;
 
 
-import com.rex.demo.study.demo.constants.KafkaConstants;
-import com.rex.demo.study.demo.entity.FlinkInitInfo;
-import com.rex.demo.study.demo.enums.KafkaConfigEnum;
 import com.rex.demo.study.demo.sink.MySqlTwoPhaseCommitSink;
 import com.rex.demo.study.demo.util.CommonUtils;
 import com.rex.demo.study.demo.util.FlinkUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase;
 import org.apache.flink.streaming.util.serialization.JSONKeyValueDeserializationSchema;
-import org.apache.flink.streaming.util.serialization.SimpleStringSchema;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import java.util.Properties;
