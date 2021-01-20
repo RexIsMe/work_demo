@@ -1,3 +1,4 @@
+/*
 package com.rex.demo.study.demo.tableAndSql;
 
 import org.apache.flink.api.common.typeinfo.Types;
@@ -12,12 +13,14 @@ import org.apache.flink.util.Collector;
 
 import java.util.Arrays;
 
+*/
 /**
  * TODO 离线 WordCount SQL Demo
  *
  * @author liuzebiao
  * @Date 2020-2-26 10:37
- */
+ *//*
+
 public class BatchWordCountSQLAPIDemo {
 
     public static void main(String[] args) throws Exception {
@@ -47,3 +50,4 @@ public class BatchWordCountSQLAPIDemo {
     }
 }
 
+*/

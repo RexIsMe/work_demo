@@ -1,3 +1,4 @@
+/*
 package com.rex.demo.study.demo.tableAndSql.window;
 
 import org.apache.flink.api.common.functions.MapFunction;
@@ -14,12 +15,14 @@ import org.apache.flink.table.api.Tumble;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
 import org.apache.flink.types.Row;
 
+*/
 /**
  * TODO Table API 实现滚动窗口(10s一滚动)
  *
  * @author liuzebiao
  * @Date 2020-2-26 15:37
- */
+ *//*
+
 public class TumblingEventTimeWindowsTableDemo {
 
     public static void main(String[] args) throws Exception {
@@ -55,21 +58,29 @@ public class TumblingEventTimeWindowsTableDemo {
         tableEnv.registerDataStream("t_orders", waterMarksRow, "atime,uid,pid,money,rowtime.rowtime");
 
 
-        /******Flink Table API 实现窗口 start ******/
+        */
+/******Flink Table API 实现窗口 start ******//*
+
         Table table = tableEnv.scan("t_orders")
                 .window(Tumble.over("10.seconds").on("rowtime").as("win"))
                 .groupBy("uid,win")
                 .select("uid,win.start,win.end,win.rowtime,money.sum as total");
-        /******Flink Table API 实现窗口 end ******/
+        */
+/******Flink Table API 实现窗口 end ******//*
 
 
 
-        /******Flink SQL 实现窗口 start ******/
+
+        */
+/******Flink SQL 实现窗口 start ******//*
+
 //        String sql = "select uid,sum(money),tumble_start(rowtime,interval '10' SECOND) as wstart,TUMBLE_END(rowtime,interval '10' second) as wend" +
 //                " from t_orders group by tumble(rowtime,interval '10' second),uid";
 //
 //        Table table = tableEnv.sqlQuery(sql);
-        /******Flink SQL 实现窗口 end ******/
+        */
+/******Flink SQL 实现窗口 end ******//*
+
 
 
         DataStream<Row> dataStream = tableEnv.toAppendStream(table, Row.class);
@@ -80,3 +91,4 @@ public class TumblingEventTimeWindowsTableDemo {
     }
 }
 
+*/

@@ -1,3 +1,4 @@
+/*
 package com.rex.demo.study.demo.tableAndSql;
 
 import org.apache.flink.api.common.typeinfo.Types;
@@ -13,13 +14,15 @@ import org.apache.flink.util.Collector;
 
 import java.util.Arrays;
 
+*/
 /**
  * TODO WordCount TABLE API Demo
  * flink version 1.9.1
  *
  * @author liuzebiao
  * @Date 2020-2-26 10:37
- */
+ *//*
+
 public class StreamWordCountTableAPIDemo {
 
     public static void main(String[] args) throws Exception {
@@ -52,3 +55,4 @@ public class StreamWordCountTableAPIDemo {
     }
 }
 
+*/
