@@ -12,6 +12,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.util.Collector;
 
 import java.util.ArrayList;
@@ -32,11 +33,11 @@ public class BatchToMysql {
 
         /**2.Source:读取 Kafka 中的消息**/
         Properties properties = CommonUtils.getKafkaProperties();
-        FlinkKafkaConsumer<String> kafkaSource = new FlinkKafkaConsumer("test", new SimpleStringSchema(), properties);
+        FlinkKafkaConsumer011<String> kafkaSource = new FlinkKafkaConsumer011<>("test", new SimpleStringSchema(), properties);
         DataStreamSource<String> stringDataStreamSource = env.addSource(kafkaSource);
 
         //3、流式数据每10s做为一个批次，写入到mysql
-        SingleOutputStreamOperator<List<String>> streamOperator = stringDataStreamSource.timeWindowAll(Time.seconds(10)).apply(new AllWindowFunction<String, List<String>, TimeWindow>() {
+        SingleOutputStreamOperator<List<String>> streamOperator = stringDataStreamSource.timeWindowAll(Time.seconds(5)).apply(new AllWindowFunction<String, List<String>, TimeWindow>() {
             @Override
             public void apply(TimeWindow window, Iterable<String> values, Collector<List<String>> out) throws Exception {
                 ArrayList<String> students = Lists.newArrayList(values);

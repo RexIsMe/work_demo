@@ -39,11 +39,12 @@ public class CommonUtils {
         });
     }
 
+
     public static Properties getKafkaProperties(){
         //Kafka props
         Properties properties = new Properties();
         //指定Kafka的Broker地址
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.26.55.116:9092");
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "172.16.0.211:9092");
         //指定组ID
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, "testGroup");
         //如果没有记录偏移量，第一次从最开始消费
@@ -53,7 +54,6 @@ public class CommonUtils {
 
         return properties;
     }
-
 
     public static StreamExecutionEnvironment getEnv(){
         /**1.创建流运行环境**/

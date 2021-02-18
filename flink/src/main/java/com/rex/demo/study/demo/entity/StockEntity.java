@@ -50,6 +50,7 @@ public class StockEntity {
     private Integer allocatedQuantity;
     private Integer packageUnitId;
     private String customerCode;
+    private Integer customerId;
     private String supplierCode;
     private String warehouseName;
     private String warehouseCode;
