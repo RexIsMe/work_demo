@@ -5,9 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.rex.demo.study.demo.entity.DCRecordEntity;
 import com.rex.demo.study.demo.entity.StockEntity;
 import com.rex.demo.study.demo.util.Md5Utils;
+import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import org.apache.flink.table.planner.expressions.E;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,6 +23,7 @@ import java.util.List;
  * @Author li zhiqang
  * @create 2020/11/25
  */
+@Slf4j
 public class SinkToMySQL extends RichSinkFunction<List<String>> {
     private PreparedStatement ps;
     private BasicDataSource dataSource;
@@ -125,90 +130,95 @@ public class SinkToMySQL extends RichSinkFunction<List<String>> {
      * 每批数据的插入都要调用一次 invoke() 方法
      */
     @Override
-    public void invoke(List<String> value, Context context) throws Exception {
-        //遍历数据集合
-        for (String str : value) {
-            DCRecordEntity dcRecordEntity = JSONObject.parseObject(str, DCRecordEntity.class);
-            ps.setString(1, dcRecordEntity.getIp());
-            ps.setLong(2, dcRecordEntity.getTimestamp());
-            ps.setString(3, dcRecordEntity.getBusinessName());
-            ps.setString(4, dcRecordEntity.getCompanyName());
+    public void invoke(List<String> value, Context context) {
+        try{
+            //遍历数据集合
+            for (String str : value) {
+                DCRecordEntity dcRecordEntity = JSONObject.parseObject(str, DCRecordEntity.class);
+                ps.setString(1, dcRecordEntity.getIp());
+                ps.setLong(2, dcRecordEntity.getTimestamp());
+                ps.setString(3, dcRecordEntity.getBusinessName());
+                ps.setString(4, dcRecordEntity.getCompanyName());
 
-            List<JSONObject> dataList = dcRecordEntity.getDataList();
-            for (JSONObject jsonObject : dataList) {
-                StockEntity stockEntity = jsonObject.toJavaObject(StockEntity.class);
-                ps.setString(5, stockEntity.getBatchNo());
-                ps.setInt(6, stockEntity.getInventoryNumber());
-                ps.setString(7, stockEntity.getWarehouseName());
-                ps.setInt(8, stockEntity.getWarehouseId());
-                ps.setString(9, stockEntity.getWarehouseCode());
-                ps.setString(10, stockEntity.getWarehouseCategoryName());
-                ps.setInt(11, stockEntity.getWarehouseCategoryId());
-                ps.setString(12, stockEntity.getWarehouseCategoryCode());
-                ps.setInt(13, stockEntity.getWarehouseAreaId());
-                ps.setString(14, stockEntity.getWarehouseAreaDesc());
-                ps.setString(15, stockEntity.getWarehouseAreaCode());
-                ps.setString(16, stockEntity.getSupplierName());
-                ps.setInt(17, stockEntity.getSupplierId());
-                ps.setString(18, stockEntity.getSupplierEnableCode());
-                ps.setString(19, stockEntity.getSupplierCode());
-                ps.setString(20, stockEntity.getStorageCondition());
-                ps.setString(21, stockEntity.getSterilizationBatchNo());
-                ps.setString(22, stockEntity.getRegisterNumber());
-                ps.setString(23, stockEntity.getRegisterName());
-                ps.setInt(24, stockEntity.getQuotiety());
-                ps.setInt(25, stockEntity.getQuantity());
-                ps.setString(26, stockEntity.getProfessionalGroup());
-                ps.setString(27, stockEntity.getProductionPlace());
-                ps.setString(28, stockEntity.getProductionLicense());
-                ps.setLong(29, stockEntity.getProducedDate());
-                ps.setString(30, stockEntity.getPackageUnitName());
-                ps.setString(31, stockEntity.getAccountingMl());
-                ps.setString(32, stockEntity.getAccountingName());
-                ps.setString(33, stockEntity.getAccountingOne());
-                ps.setInt(34, stockEntity.getAllocatedQuantity());
-                ps.setString(35, stockEntity.getBrandName());
-                ps.setString(36, stockEntity.getClassifyIdLevel1());
-                ps.setString(37, stockEntity.getClassifyIdLevel2());
-                ps.setString(38, stockEntity.getColdChainMark());
-                ps.setString(39, stockEntity.getCommodityCode());
-                ps.setInt(40, stockEntity.getCommodityId());
-                ps.setString(41, stockEntity.getCommodityName());
-                ps.setString(42, stockEntity.getCommodityNumber());
-                ps.setString(43, stockEntity.getCommodityRemark());
-                ps.setString(44, stockEntity.getCommoditySpec());
-                ps.setString(45, stockEntity.getCommodityType());
-                ps.setString(46, stockEntity.getCustomerCode());
-                ps.setString(47, stockEntity.getCustomerEnableCode());
-                ps.setInt(48, stockEntity.getCustomerId() == null ? 0 : stockEntity.getCustomerId());
-                ps.setString(49, stockEntity.getCustomerName());
-                ps.setString(50, stockEntity.getDeviceClassify());
-                ps.setString(51, stockEntity.getDeviceClassifyType());
-                ps.setLong(52, stockEntity.getEffectiveDate());
-                ps.setInt(53, stockEntity.getEffectiveDays());
-                ps.setString(54, stockEntity.getGoodsLocation());
-                ps.setInt(55, stockEntity.getGoodsLocationId());
-                ps.setString(56, stockEntity.getInventoryOrganizationCode());
-                ps.setString(57, stockEntity.getInventoryOrganizationId());
-                ps.setString(58, stockEntity.getInventoryOrganizationName());
-                ps.setString(59, stockEntity.getIsSimplelevy());
-                ps.setString(60, stockEntity.getLogicAreaCode());
-                ps.setInt(61, stockEntity.getLogicAreaId());
-                ps.setString(62, stockEntity.getLogicAreaName());
-                ps.setString(63, stockEntity.getManufacturerName());
-                ps.setLong(64, stockEntity.getOrganizationId());
-                ps.setString(65, stockEntity.getOrganizationName());
-                ps.setString(66, stockEntity.getOwnerCode());
-                ps.setInt(67, stockEntity.getOwnerId());
-                ps.setString(68, stockEntity.getOwnerName());
-                ps.setInt(69, stockEntity.getPackageUnitId());
+                List<JSONObject> dataList = dcRecordEntity.getDataList();
+                for (JSONObject jsonObject : dataList) {
+                    StockEntity stockEntity = jsonObject.toJavaObject(StockEntity.class);
+                    ps.setString(5, StringUtils.trimToEmpty(stockEntity.getBatchNo()));
+                    ps.setInt(6, stockEntity.getInventoryNumber());
+                    ps.setString(7, stockEntity.getWarehouseName());
+                    ps.setInt(8, stockEntity.getWarehouseId());
+                    ps.setString(9, stockEntity.getWarehouseCode());
+                    ps.setString(10, stockEntity.getWarehouseCategoryName());
+                    ps.setInt(11, stockEntity.getWarehouseCategoryId());
+                    ps.setString(12, stockEntity.getWarehouseCategoryCode());
+                    ps.setInt(13, stockEntity.getWarehouseAreaId());
+                    ps.setString(14, stockEntity.getWarehouseAreaDesc());
+                    ps.setString(15, stockEntity.getWarehouseAreaCode());
+                    ps.setString(16, stockEntity.getSupplierName());
+                    ps.setInt(17, stockEntity.getSupplierId());
+                    ps.setString(18, stockEntity.getSupplierEnableCode());
+                    ps.setString(19, stockEntity.getSupplierCode());
+                    ps.setString(20, stockEntity.getStorageCondition());
+                    ps.setString(21, stockEntity.getSterilizationBatchNo());
+                    ps.setString(22, stockEntity.getRegisterNumber());
+                    ps.setString(23, stockEntity.getRegisterName());
+                    ps.setInt(24, stockEntity.getQuotiety());
+                    ps.setInt(25, stockEntity.getQuantity());
+                    ps.setString(26, stockEntity.getProfessionalGroup());
+                    ps.setString(27, stockEntity.getProductionPlace());
+                    ps.setString(28, stockEntity.getProductionLicense());
+                    ps.setLong(29, stockEntity.getProducedDate());
+                    ps.setString(30, stockEntity.getPackageUnitName());
+                    ps.setString(31, stockEntity.getAccountingMl());
+                    ps.setString(32, stockEntity.getAccountingName());
+                    ps.setString(33, stockEntity.getAccountingOne());
+                    ps.setInt(34, stockEntity.getAllocatedQuantity());
+                    ps.setString(35, stockEntity.getBrandName());
+                    ps.setString(36, stockEntity.getClassifyIdLevel1());
+                    ps.setString(37, stockEntity.getClassifyIdLevel2());
+                    ps.setString(38, stockEntity.getColdChainMark());
+                    ps.setString(39, stockEntity.getCommodityCode());
+                    ps.setInt(40, stockEntity.getCommodityId());
+                    ps.setString(41, stockEntity.getCommodityName());
+                    ps.setString(42, stockEntity.getCommodityNumber());
+                    ps.setString(43, stockEntity.getCommodityRemark());
+                    ps.setString(44, stockEntity.getCommoditySpec());
+                    ps.setString(45, stockEntity.getCommodityType());
+                    ps.setString(46, stockEntity.getCustomerCode());
+                    ps.setString(47, stockEntity.getCustomerEnableCode());
+                    ps.setInt(48, stockEntity.getCustomerId() == null ? 0 : stockEntity.getCustomerId());
+                    ps.setString(49, stockEntity.getCustomerName());
+                    ps.setString(50, stockEntity.getDeviceClassify());
+                    ps.setString(51, stockEntity.getDeviceClassifyType());
+                    ps.setLong(52, stockEntity.getEffectiveDate());
+                    ps.setInt(53, stockEntity.getEffectiveDays());
+                    ps.setString(54, stockEntity.getGoodsLocation());
+                    ps.setInt(55, stockEntity.getGoodsLocationId());
+                    ps.setString(56, stockEntity.getInventoryOrganizationCode());
+                    ps.setString(57, stockEntity.getInventoryOrganizationId());
+                    ps.setString(58, stockEntity.getInventoryOrganizationName());
+                    ps.setString(59, stockEntity.getIsSimplelevy());
+                    ps.setString(60, stockEntity.getLogicAreaCode());
+                    ps.setInt(61, stockEntity.getLogicAreaId());
+                    ps.setString(62, stockEntity.getLogicAreaName());
+                    ps.setString(63, stockEntity.getManufacturerName());
+                    ps.setLong(64, stockEntity.getOrganizationId());
+                    ps.setString(65, stockEntity.getOrganizationName());
+                    ps.setString(66, stockEntity.getOwnerCode());
+                    ps.setInt(67, stockEntity.getOwnerId());
+                    ps.setString(68, stockEntity.getOwnerName());
+                    ps.setInt(69, stockEntity.getPackageUnitId());
 
-                ps.addBatch();
+                    ps.addBatch();
+                }
             }
+            int[] count = ps.executeBatch();  //批量后执行
+            connection.commit();
+            System.out.println("成功了插入了" + count.length + "行数据");
+        } catch (Exception e){
+            log.error("解析失败，丢弃数据：【" + value.toString() + "】");
         }
-        int[] count = ps.executeBatch();  //批量后执行
-        connection.commit();
-        System.out.println("成功了插入了" + count.length + "行数据");
+
     }
 
 
