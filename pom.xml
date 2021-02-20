@@ -11,8 +11,6 @@
     <modules>
         <module>spark</module>
         <module>flink</module>
-        <module>flume</module>
-        <module>flume-parent</module>
         <module>flume-parent</module>
     </modules>
 
@@ -38,6 +36,13 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>5.1.27</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-runtime-web_2.12</artifactId>
+            <version>1.7.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

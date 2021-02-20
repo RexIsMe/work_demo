@@ -66,7 +66,7 @@ object To_CK {
       (x._1, x._2, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(x._3))
     }) //时间还原成datetime类型
     //result.print()
-//    result.addSink(JdbcSink.sink[(Int, String, String)](sql, new CkSinkBuilder, new JdbcExecutionOptions.Builder().withBatchSize(5).build(),
+    //    result.addSink(JdbcSink.sink[(Int, String, String)](sql, new CkSinkBuilder, new JdbcExecutionOptions.Builder().withBatchSize(5).build(),
     result.addSink(JdbcSink.sink[(Int, String, String)](sql, new CkSinkBuilder, new JdbcExecutionOptions.Builder().withBatchIntervalMs(2000).build(),
       new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
         .withUrl("jdbc:clickhouse://172.16.0.211:8123")

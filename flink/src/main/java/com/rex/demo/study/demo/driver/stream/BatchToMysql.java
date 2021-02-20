@@ -1,8 +1,12 @@
 package com.rex.demo.study.demo.driver.stream;
 
+import com.rex.demo.study.demo.driver.CkSinkBuilder;
 import com.rex.demo.study.demo.sink.SinkToMySQL;
 import com.rex.demo.study.demo.util.CommonUtils;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
+import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
+import org.apache.flink.connector.jdbc.JdbcSink;
 import org.apache.flink.shaded.guava18.com.google.common.collect.Lists;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -14,10 +18,14 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 import org.apache.flink.util.Collector;
+import ru.ivi.opensource.flinkclickhousesink.ClickHouseSink;
+import ru.ivi.opensource.flinkclickhousesink.model.ClickHouseSinkConst;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import static org.apache.arrow.flatbuf.Type.Int;
 
 /**
  * 批量写入到mysql 示例
@@ -36,7 +44,7 @@ public class BatchToMysql {
         FlinkKafkaConsumer011<String> kafkaSource = new FlinkKafkaConsumer011<>("test", new SimpleStringSchema(), properties);
         DataStreamSource<String> stringDataStreamSource = env.addSource(kafkaSource);
 
-        //3、流式数据每10s做为一个批次，写入到mysql
+        //3、流式数据每5s做为一个批次，写入到mysql
         SingleOutputStreamOperator<List<String>> streamOperator = stringDataStreamSource.timeWindowAll(Time.seconds(5)).apply(new AllWindowFunction<String, List<String>, TimeWindow>() {
             @Override
             public void apply(TimeWindow window, Iterable<String> values, Collector<List<String>> out) throws Exception {
